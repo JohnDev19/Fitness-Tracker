@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitTrack Pro - Fitness Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <header>
+            <nav>
+                <div class="logo">
+                    <i class="fas fa-dumbbell"></i>
+                    <span>FitTrack Pro</span>
+                </div>
+                <ul>
+                    <li><a href="#dashboard" @click="currentView = 'dashboard'" :class="{ active: currentView === 'dashboard' }"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li><a href="#workout-log" @click="currentView = 'workoutLog'" :class="{ active: currentView === 'workoutLog' }"><i class="fas fa-clipboard-list"></i> Workout Log</a></li>
+                    <li><a href="#progress" @click="currentView = 'progress'" :class="{ active: currentView === 'progress' }"><i class="fas fa-chart-line"></i> Progress</a></li>
+                    <li><a href="#goals" @click="currentView = 'goals'" :class="{ active: currentView === 'goals' }"><i class="fas fa-bullseye"></i> Goals</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <main>
+            <component :is="currentView"></component>
+        </main>
+
+        <footer>
+            <p>&copy; 2024 FitTrack Pro. All rights reserved.</p>
+        </footer>
+
+        <div class="bottom-nav">
+            <a href="#dashboard" @click="currentView = 'dashboard'" :class="{ active: currentView === 'dashboard' }">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="#workout-log" @click="currentView = 'workoutLog'" :class="{ active: currentView === 'workoutLog' }">
+                <i class="fas fa-clipboard-list"></i>
+                <span>Workout Log</span>
+            </a>
+            <a href="#progress" @click="currentView = 'progress'" :class="{ active: currentView === 'progress' }">
+                <i class="fas fa-chart-line"></i>
+                <span>Progress</span>
+            </a>
+            <a href="#goals" @click="currentView = 'goals'" :class="{ active: currentView === 'goals' }">
+                <i class="fas fa-bullseye"></i>
+                <span>Goals</span>
+            </a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="app.js"></script>
+
+    <script type="text/x-template" id="dashboard-template">
+        <div>
+            <h1>Dashboard</h1>
+            <div class="dashboard-stats">
+                <div class="stat-card">
+                    <i class="fas fa-running"></i>
+                    <h3>{{ totalWorkouts }}</h3>
+                    <p>Total Workouts</p>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-fire"></i>
+                    <h3>{{ caloriesBurned }}</h3>
+                    <p>Calories Burned</p>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-stopwatch"></i>
+                    <h3>{{ totalDuration }}</h3>
+                    <p>Total Minutes</p>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-trophy"></i>
+                    <h3>{{ currentStreak }}</h3>
+                    <p>Day Streak</p>
+                </div>
+            </div>
+            <div class="card">
+                <h2>Recent Activity</h2>
+                <ul>
+                    <li v-for="activity in recentActivities">{{ activity }}</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h2>Weekly Progress</h2>
+                <div class="chart-container">
+                    <canvas ref="weeklyProgressChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </script>
+
+    <script type="text/x-template" id="workout-log-template">
+        <div>
+            <h1>Workout Log</h1>
+            <div class="card">
+                <h2>Add Workout</h2>
+                <form @submit.prevent="addWorkout">
+                    <input v-model="newWorkout.date" type="date" required>
+                    <select v-model="newWorkout.type" required>
+                        <option value="">Select Workout Type</option>
+                        <option value="Running">Running</option>
+                        <option value="Weightlifting">Weightlifting</option>
+                        <option value="Yoga">Yoga</option>
+                        <option value="Swimming">Swimming</option>
+                        <option value="Cycling">Cycling</option>
+                    </select>
+                    <input v-model.number="newWorkout.duration" type="number" placeholder="Duration (minutes)" required>
+                    <input v-model.number="newWorkout.calories" type="number" placeholder="Calories Burned" required>
+                    <button type="submit">Add Workout</button>
+                </form>
+            </div>
+            <div class="card">
+                <h2>Recent Workouts</h2>
+                <table v-if="workouts.length">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Duration</th>
+                            <th>Calories</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="workout in workouts">
+                            <td>{{ workout.date }}</td>
+                            <td>{{ workout.type }}</td>
+                            <td>{{ workout.duration }} min</td>
+                            <td>{{ workout.calories }} kcal</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p v-else>No workouts logged yet.</p>
+            </div>
+        </div>
+    </script>
+
+    <script type="text/x-template" id="progress-template">
+        <div>
+            <h1>Progress</h1>
+            <div class="card">
+                <h2>Weight Progress</h2>
+                <div class="chart-container">
+                    <canvas ref="weightChart"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <h2>Workout Duration Progress</h2>
+                <div class="chart-container">
+                    <canvas ref="durationChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </script>
+
+    <script type="text/x-template" id="goals-template">
+        <div>
+            <h1>Goals</h1>
+            <div class="card">
+                <h2>Set New Goal</h2>
+                <form @submit.prevent="addGoal">
+                    <input v-model="newGoal.name" placeholder="Goal Name" required>
+                    <input v-model.number="newGoal.target" type="number" placeholder="Target Value" required>
+                    <select v-model="newGoal.type" required>
+                        <option value="">Select Goal Type</option>
+                        <option value="weight">Weight</option>
+                        <option value="workouts">Workouts per Week</option>
+                        <option value="duration">Weekly Workout Duration</option>
+                    </select>
+                    <input v-model="newGoal.deadline" type="date" required>
+                    <button type="submit">Set Goal</button>
+                </form>
+            </div>
+            <div class="card">
+                <h2>Current Goals</h2>
+                <div v-if="goals.length" class="goals-list">
+                    <div v-for="goal in goals" class="goal-item">
+                        <h3>{{ goal.name }}</h3>
+                        <p>Target: {{ goal.target }} {{ goal.type }}</p>
+                        <p>Deadline: {{ goal.deadline }}</p>
+                        <div class="progress-bar">
+                            <div class="progress-bar-fill" :style="{ width: goal.progress + '%' }"></div>
+                        </div>
+                        <p>{{ goal.progress }}% complete</p>
+                    </div>
+                </div>
+                <p v-else>No goals set yet.</p>
+            </div>
+        </div>
+    </script>
+</body>
+</html>
