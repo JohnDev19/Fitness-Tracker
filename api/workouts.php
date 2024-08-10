@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     
     // Validate input
     if (!empty($data['date']) && !empty($data['type']) && !empty($data['duration']) && !empty($data['calories'])) {
-        // In a real application, you need to insert this data into a database
+        // Of course you need to insert this data into a database
         $newWorkout = [
             'date' => $data['date'],
             'type' => $data['type'],
